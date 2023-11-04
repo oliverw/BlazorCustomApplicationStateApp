@@ -31,7 +31,7 @@ public static class CustomApplicationState
 
     public static MarkupString RenderAccessor()
     {
-        return new MarkupString($"<script>{AccessorFuncName} = (id) => document.getElementById(id).innerText.trim()</script>");
+        return new MarkupString($"<script>{AccessorFuncName} = (id) => document.getElementById(id).innerText</script>");
     }
 
     public static async Task<T> DeserializeAsync<T>(string id, IServiceProvider services)
