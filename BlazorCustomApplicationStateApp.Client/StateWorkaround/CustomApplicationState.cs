@@ -12,20 +12,28 @@ public static class CustomApplicationState
         return services.GetService<IIsPreRender>() != null;
     }
 
-    public static MarkupString Serialize(string functionName, object value)
+    private const string AccessorFuncName = "__cps";
+    private const string IdPrefix = "__cps_";
+
+    public static MarkupString Serialize(string id, object value)
     {
         var json = JsonSerializer.Serialize(value);
         var bytes = Encoding.UTF8.GetBytes(json);
         var base64 = Convert.ToBase64String(bytes);
 
-        return new MarkupString(functionName + " = () => \"" + base64 + "\"");
+        return new MarkupString($"<script id=\"{IdPrefix + id}\" type=\"text/template\">{base64}</script>");
     }
 
-    public static async Task<T> DeserializeAsync<T>(string functionName, IJSRuntime runtime)
+    public static MarkupString RenderAccessor()
+    {
+        return new MarkupString($"<script>{AccessorFuncName} = (id) => document.getElementById(id).innerText.trim()</script>");
+    }
+
+    public static async Task<T> DeserializeAsync<T>(string id, IJSRuntime runtime)
     {
         try
         {
-            var base64 = await runtime.InvokeAsync<string>(functionName);
+            var base64 = await runtime.InvokeAsync<string>(AccessorFuncName, IdPrefix + id);
 
             var bytes = Convert.FromBase64String(base64);
             var json = Encoding.UTF8.GetString(bytes);

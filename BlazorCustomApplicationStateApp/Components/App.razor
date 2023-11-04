@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using BlazorCustomApplicationStateApp.Client.StateWorkaround
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -14,6 +15,9 @@
 
 <body>
     <Routes />
+
+    @CustomApplicationState.RenderAccessor()
+
     <script src="_framework/blazor.web.js"></script>
 </body>
 

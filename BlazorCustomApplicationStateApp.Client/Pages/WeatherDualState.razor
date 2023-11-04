@@ -41,7 +41,7 @@ else
 
 @if (customPageState != null)
 {
-    <script>@CustomApplicationState.Serialize(customPageStateFuncName, customPageState)</script>
+    @CustomApplicationState.Serialize(customPageStateId, customPageState)
 }
 
 @code {
@@ -59,7 +59,7 @@ else
 
     // workaround for https://github.com/dotnet/aspnetcore/issues/51584
     private object customPageState;
-    private const string customPageStateFuncName = "__cps";
+    private const string customPageStateId = "weather";
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,14 +70,13 @@ else
             forecasts = restored;
         else
         {
-            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateFuncName, JS);
+            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateId, JS);
 
             if (forecasts == null)
                 forecasts = await LoadForecastsAsync();
 
             // workaround for https://github.com/dotnet/aspnetcore/issues/51584
-            if (CustomApplicationState.IsPreRender(Services))
-                customPageState = forecasts;
+            customPageState = forecasts;
         }
     }
 
