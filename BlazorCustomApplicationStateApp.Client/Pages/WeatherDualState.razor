@@ -49,9 +49,6 @@ else
     private PersistingComponentStateSubscription stateSub;
 
     [Inject]
-    IJSRuntime JS { get; set; }
-
-    [Inject]
     IServiceProvider Services { get; set; }
 
     // workaround for https://github.com/dotnet/aspnetcore/issues/51584
@@ -68,7 +65,7 @@ else
         else
         {
             // try CustomApplicationState before falling back to loading from backend
-            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateId, JS);
+            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateId, Services);
 
             if (forecasts == null)
                 forecasts = await LoadForecastsAsync();

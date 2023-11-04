@@ -34,10 +34,15 @@ public static class CustomApplicationState
         return new MarkupString($"<script>{AccessorFuncName} = (id) => document.getElementById(id).innerText.trim()</script>");
     }
 
-    public static async Task<T> DeserializeAsync<T>(string id, IJSRuntime runtime)
+    public static async Task<T> DeserializeAsync<T>(string id, IServiceProvider services)
     {
+        if (IsPreRender(services))
+            return default;
+
         try
         {
+            var runtime = services.GetService<IJSRuntime>();
+
             var base64 = await runtime.InvokeAsync<string>(AccessorFuncName, IdPrefix + id);
 
             var bytes = Convert.FromBase64String(base64);
