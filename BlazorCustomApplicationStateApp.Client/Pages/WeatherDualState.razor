@@ -1,5 +1,5 @@
 ﻿@page "/weather-dual-state"
-@using BlazorCustomApplicationStateApp.Client.StateWorkaround
+@using CAS = BlazorCustomApplicationStateApp.Client.StateWorkaround.CustomApplicationState;
 @attribute [StreamRendering(true)]
 
 @rendermode InteractiveWebAssembly
@@ -39,7 +39,7 @@ else
     </table>
 }
 
-@CustomApplicationState.Serialize(customPageStateId, customPageState)
+@CAS.Serialize(customPageStateId, customPageState)
 
 @code {
     private WeatherForecast[] forecasts;
@@ -65,13 +65,13 @@ else
         else
         {
             // try CustomApplicationState before falling back to loading from backend
-            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateId, Services);
+            forecasts = await CAS.DeserializeAsync<WeatherForecast[]>(customPageStateId, Services);
 
             if (forecasts == null)
                 forecasts = await LoadForecastsAsync();
 
             // workaround for https://github.com/dotnet/aspnetcore/issues/51584
-            if (CustomApplicationState.IsPreRender(Services))
+            if (CAS.IsPreRender(Services))
                 customPageState = forecasts;
         }
     }
