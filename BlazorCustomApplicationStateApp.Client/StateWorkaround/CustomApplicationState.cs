@@ -12,8 +12,8 @@ public static class CustomApplicationState
         return services.GetService<IIsPreRender>() != null;
     }
 
-    private const string AccessorFuncName = "__cps";
-    private const string IdPrefix = "__cps_";
+    private const string AccessorFuncName = "__cas";
+    private const string IdPrefix = "__cas_";
 
     private static readonly MarkupString empty = new MarkupString();
 
