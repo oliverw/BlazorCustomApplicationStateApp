@@ -1,0 +1,113 @@
+﻿@page "/weather-dual-state"
+@using BlazorCustomApplicationStateApp.Client.StateWorkaround
+@attribute [StreamRendering(true)]
+
+@rendermode InteractiveWebAssembly
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather - PersistentComponentState + Custom State</h1>
+
+<p>Table should not flicker.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (customPageState != null)
+{
+    <script>@CustomApplicationState.Serialize(customPageStateFuncName, customPageState)</script>
+}
+
+@code {
+    private WeatherForecast[] forecasts;
+
+    [Inject]
+    PersistentComponentState ApplicationState { get; set; }
+    private PersistingComponentStateSubscription stateSub;
+
+    [Inject]
+    IJSRuntime JS { get; set; }
+
+    [Inject]
+    IServiceProvider Services { get; set; }
+
+    // workaround for https://github.com/dotnet/aspnetcore/issues/51584
+    private object customPageState;
+    private const string customPageStateFuncName = "__cps";
+
+    protected override async Task OnInitializedAsync()
+    {
+        stateSub = ApplicationState.RegisterOnPersisting(() =>
+            PersistDataAsync(ApplicationState));
+
+        if (ApplicationState.TryTakeFromJson<WeatherForecast[]>(GetType().Name, out var restored))
+            forecasts = restored;
+        else
+        {
+            forecasts = await CustomApplicationState.DeserializeAsync<WeatherForecast[]>(customPageStateFuncName, JS);
+
+            if (forecasts == null)
+                forecasts = await LoadForecastsAsync();
+
+            // workaround for https://github.com/dotnet/aspnetcore/issues/51584
+            if (CustomApplicationState.IsPreRender(Services))
+                customPageState = forecasts;
+        }
+    }
+
+    protected async Task<WeatherForecast[]> LoadForecastsAsync()
+    {
+        await Task.Delay(1500);
+
+        var startDate = DateOnly.FromDateTime(DateTime.Now);
+        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+
+        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            {
+                Date = startDate.AddDays(index),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = summaries[Random.Shared.Next(summaries.Length)]
+            }).ToArray();
+    }
+
+    public Task PersistDataAsync(PersistentComponentState state)
+    {
+        state.PersistAsJson(GetType().Name, forecasts);
+
+        return Task.CompletedTask;
+    }
+
+    protected class WeatherForecast
+    {
+        public DateOnly Date { get; set; }
+        public int TemperatureC { get; set; }
+        public string? Summary { get; set; }
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}
