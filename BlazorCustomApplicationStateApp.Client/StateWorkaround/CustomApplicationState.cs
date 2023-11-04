@@ -15,8 +15,13 @@ public static class CustomApplicationState
     private const string AccessorFuncName = "__cps";
     private const string IdPrefix = "__cps_";
 
+    private static readonly MarkupString empty = new MarkupString();
+
     public static MarkupString Serialize(string id, object value)
     {
+        if (value == null)
+            return empty;
+
         var json = JsonSerializer.Serialize(value);
         var bytes = Encoding.UTF8.GetBytes(json);
         var base64 = Convert.ToBase64String(bytes);

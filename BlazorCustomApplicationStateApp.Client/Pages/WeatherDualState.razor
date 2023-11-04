@@ -39,10 +39,7 @@ else
     </table>
 }
 
-@if (customPageState != null)
-{
-    @CustomApplicationState.Serialize(customPageStateId, customPageState)
-}
+@CustomApplicationState.Serialize(customPageStateId, customPageState)
 
 @code {
     private WeatherForecast[] forecasts;
